@@ -133,58 +133,7 @@ def hangman(secret_word, with_help):
 
     Follows the other limitations detailed in the problem write-up.
     """
-    guesses_left=10
-    secret_words=[]
-    for l in secret_word:
-        if l not in secret_words:
-          secret_words.append(l)
-    letters_guessed=[]
-    vowels=['a','e','i','o','u']
-    print(f"Now you have {guesses_left} times left, and the word has {len(secret_word)} letters")
-    while guesses_left>0:
-        print(f"Now you have {guesses_left} times left, {len(secret_words)-len(letters_guessed)} words not guessed, which are {get_available_letters(letters_guessed)}")
-        if with_help:
-            guess_letter=input("Please enter a lowercase letter as your guess, or you can enter ! for help, at an expense of 3 guess chances")
-        else:
-            guess_letter=input("Please enter a lowercase letter as your guess")
-        if with_help:
-            if guess_letter=='!':
-                if guesses_left>=3:
-                    print(f"Hint: {get_hint(secret_word,letters_guessed)[0]} is not guessed but in the secret word")
-                else:
-                    print("Warning! Your guesses aren't enough!")
-            else:
-                if guess_letter in secret_words:
-                    if not (guess_letter in letters_guessed):
-                        letters_guessed.append(guess_letter)
-                    print(f"The letter is in the secret word! Now we've got {get_word_progress(secret_word,letters_guessed)}")
-                    guesses_left-=1
-                else:
-                    print("The word isn't in the secret word...")
-                    if guess_letter in vowels:
-                        guesses_left-=2
-                    else:
-                        guesses_left-=1
-        else:
-          if guess_letter in secret_words:
-              if not (guess_letter in letters_guessed):
-                  letters_guessed.append(guess_letter)
-              print(f"The letter is in the secret word! Now we've got {get_word_progress(secret_word,letters_guessed)}")
-              guesses_left-=1
-          else:
-              print(f"The word isn't in the secret word... Now we've got {get_word_progress(secret_word,letters_guessed)}")
-              if guess_letter in vowels:
-                  guesses_left-=2
-              else:
-                  guesses_left-=1
-        if len(secret_words)==len(letters_guessed):
-            print("Congradulations! You win")
-            return
-    print("You lose! All the chances have been used up!")
-    return
-            
-        
-        
+   
 
 
 

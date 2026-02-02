@@ -49,8 +49,8 @@ def has_player_won(secret_word, letters_guessed):
     returns: boolean, True if all the letters of secret_word are in letters_guessed,
         False otherwise
     """
-    for l in secret_word:
-        if not(l in letters_guessed):
+    for char in secret_word: # string is naturally iterable
+        if char not in letters_guessed: ##
             return False
     return True
 
@@ -83,16 +83,22 @@ def get_available_letters(letters_guessed):
     """
     temp_str=""
     for l in string.ascii_lowercase:
-        if not (l in letters_guessed):
+        if l not in letters_guessed:
             temp_str+=l
     return temp_str
 
 def get_hint(secret_word,letters_guessed):
-    temp_str=""
-    for l in secret_word:
-      if not (l in letters_guessed):
-          temp_str+=l
-    return temp_str
+    possible_hints=[]
+    for char in secret_word:
+        if char not in letters_guessed:
+            possible_hints.append(char)
+    # Can use list comprehension to elegantly create the list!
+    # possible_hints=[char for char in secret_word if char not in letters_guessed]
+    
+    if possible_hints: # a pythonic way, equivalent to possible_hints.empty()
+        return random.choice(possible_hints)
+    else:
+        return None
 
 def hangman(secret_word, with_help):
     """
@@ -133,55 +139,75 @@ def hangman(secret_word, with_help):
 
     Follows the other limitations detailed in the problem write-up.
     """
+    # Initialization
     guesses_left=10
-    secret_words=[]
-    for l in secret_word:
-        if l not in secret_words:
-          secret_words.append(l)
     letters_guessed=[]
     vowels=['a','e','i','o','u']
-    print(f"Now you have {guesses_left} times left, and the word has {len(secret_word)} letters")
+
+    # Welcome
+    print("\nWelcome to the game Hangman!")
+    print(f"I am thinking of a word that is {len(secret_word)} letters long")
+
+    # Game loop
     while guesses_left>0:
-        print(f"Now you have {guesses_left} times left, {len(secret_words)-len(letters_guessed)} words not guessed, which are {get_available_letters(letters_guessed)}")
+        print("-------")
+        print(f"You have {guesses_left} guesses left")
+        print(f"Available letters: {get_available_letters(letters_guessed)}")
+
+        # Getting input
+        prompt_text="Please guess a letter: "
         if with_help:
-            guess_letter=input("Please enter a lowercase letter as your guess, or you can enter ! for help, at an expense of 3 guess chances")
-        else:
-            guess_letter=input("Please enter a lowercase letter as your guess")
-        if with_help:
-            if guess_letter=='!':
-                if guesses_left>=3:
-                    print(f"Hint: {get_hint(secret_word,letters_guessed)[0]} is not guessed but in the secret word")
-                else:
-                    print("Warning! Your guesses aren't enough!")
+            prompt_text="Please guess a letter (enter '!' for help): "
+        
+        # Case sensitivity
+        guess=input(prompt_text).lower()
+
+        # Help
+        if with_help and guess=='!':
+            if guesses_left>=3:
+                guesses_left-=3
+                hint=get_hint(secret_word,letters_guessed)
+                print(f"Hint: The letter '{hint}' is in the word!")
+                letters_guessed.append(hint)
+                if has_player_won(secret_word,letters_guessed):
+                    print("------")
+                    print("Congratulations, you won!")
+                    print(f"The word was: {secret_word}")
+                    return
             else:
-                if guess_letter in secret_words:
-                    if not (guess_letter in letters_guessed):
-                        letters_guessed.append(guess_letter)
-                    print(f"The letter is in the secret word! Now we've got {get_word_progress(secret_word,letters_guessed)}")
-                    guesses_left-=1
-                else:
-                    print("The word isn't in the secret word...")
-                    if guess_letter in vowels:
-                        guesses_left-=2
-                    else:
-                        guesses_left-=1
+                print("Oops! Not enough guesses left for a hint")
+            continue
+
+        # Validation check
+        if not guess.isalpha() or len(guess)!=1:
+            print(f"Oops! That's not a valid letter!")
+            continue # Assume that invalid guess doesn't waste chances
+        
+        # Duplication
+        if guess in letters_guessed:
+            print(f"Oops! You've already guessed that letter!")
+            continue # Assume that duplication doesn't waste chances
+
+        # Normal situation
+        letters_guessed.append(guess)
+        if guess in secret_word:
+            print(f"Good guess: {get_word_progress(secret_word,letters_guessed)}")
+            if has_player_won(secret_word,letters_guessed):
+                print("------")
+                print("Congratulations! You win!")
+                return
+        
         else:
-          if guess_letter in secret_words:
-              if not (guess_letter in letters_guessed):
-                  letters_guessed.append(guess_letter)
-              print(f"The letter is in the secret word! Now we've got {get_word_progress(secret_word,letters_guessed)}")
-              guesses_left-=1
-          else:
-              print(f"The word isn't in the secret word... Now we've got {get_word_progress(secret_word,letters_guessed)}")
-              if guess_letter in vowels:
-                  guesses_left-=2
-              else:
-                  guesses_left-=1
-        if len(secret_words)==len(letters_guessed):
-            print("Congradulations! You win")
-            return
-    print("You lose! All the chances have been used up!")
-    return
+            print(f"Oops! That letter is not in my word: {get_word_progress(secret_word,letters_guessed)}")
+            if guess in vowels:
+                guesses_left-=2
+            else:
+                guesses_left-=1
+   
+    # Iteration ends(Loss)
+    print("------")
+    print(f"Sorry, you ran out of guesses, the word was {secret_word}")
+
             
         
         

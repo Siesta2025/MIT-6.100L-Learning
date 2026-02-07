@@ -8,8 +8,8 @@
 
 # Purpose: Check for similarity between two texts by comparing different kinds of word statistics.
 
-import string
-import math
+import string # For string.punctuation
+import math # For math.log10()
 
 
 ### DO NOT MODIFY THIS FUNCTION
@@ -22,11 +22,11 @@ def load_file(filename):
     """
     # print("Loading file %s" % filename)
     inFile = open(filename, 'r')
-    line = inFile.read().strip()
-    for char in string.punctuation:
-        line = line.replace(char, "")
+    line = inFile.read().strip() # Read the file, and remove all the white spaces in head and tail
+    for char in string.punctuation: # string.punctuation returns an iterable of all the punctuations
+        line = line.replace(char, "") # Remove useless punctuations
     inFile.close()
-    return line.lower()
+    return line.lower() # Convert to lower cases
 
 
 ### Problem 0: Prep Data ###
@@ -38,8 +38,7 @@ def text_to_list(input_text):
     Returns:
         list representation of input_text, where each word is a different element in the list
     """
-    L=input_text.split(" ")
-    return L
+    return input_text.split() # Use split() to automatically handle all potential spaces and \n
     
 
 
@@ -74,13 +73,7 @@ def get_letter_frequencies(word):
         is a letter in word and the corresponding int
         is the frequency of the letter in word
     """
-    letter_frequencies={}
-    for l in word:
-        if l not in letter_frequencies.keys():
-            letter_frequencies[l]=1
-        else:
-            letter_frequencies[l]+=1
-    return letter_frequencies
+    return get_frequencies(word) # Elegant reuse! Pay attention that all kinds of iterables are almost equivalent in Python
 
 
 ### Problem 3: Similarity ###
@@ -120,7 +113,7 @@ def calculate_similarity_score(freq_dict1, freq_dict2):
     u=[]
     delta=[]
     sigma=[]
-    for word in freq_dict1.keys():
+    for word in freq_dict1.keys(): # Actually .keys() is redundant, because in Python, iterating over or checking membership in a dictionary checks the keys by default
         if word not in u:
             u.append(word)
     for word in freq_dict2.keys():
@@ -129,7 +122,7 @@ def calculate_similarity_score(freq_dict1, freq_dict2):
     for e in u:
         delta.append(abs(count(e,freq_dict1)-count(e,freq_dict2)))
         sigma.append(abs(count(e,freq_dict1)+count(e,freq_dict2)))
-    similarity=round(1-(sum(delta)/sum(sigma)),2)
+    similarity=round(1-(sum(delta)/sum(sigma)),2) # round() controls the decimal digits we want
     return similarity
 
 
@@ -165,7 +158,7 @@ def get_most_frequent_words(freq_dict1, freq_dict2):
             u.append(word)
     for e in u:
         freq[e]=count(e,freq_dict1)+count(e,freq_dict2)
-    max_freq=max(freq.values())
+    max_freq=max(freq.values()) # max(), min() and sum() are useful for iterables
     for e in freq.keys():
         if freq[e]==max_freq:
             result.append(e)
@@ -188,8 +181,9 @@ def get_tf(file_path):
     words=text_to_list(load_file(file_path))
     words_freq=get_frequencies(load_file(file_path))
     tf={}
+    total_words=len(words) # Performance optimization! Avoid redundant cauculations
     for word in words:
-        tf[word]=words_freq[word]/sum(words_freq.values())
+        tf[word]=words_freq[word]/total_words
     return tf
 
 
@@ -208,11 +202,13 @@ def get_idf(file_paths):
     u={}
     idf={}
     for name in file_paths:
-        for word in text_to_list(load_file(name)):
+        unique_words_in_doc=set(text_to_list(load_file(name))) # Use set() to remove duplicates
+        for word in unique_words_in_doc:
             if word not in u:
                 u[word]=1
             else:
                 u[word]+=1
+    
     for e in u.keys():
         idf[e]=math.log10(len(file_paths)/u[e])
     return idf
@@ -235,15 +231,9 @@ def get_tfidf(tf_file_path, idf_file_paths):
     tf=get_tf(tf_file_path)
     idf=get_idf(idf_file_paths)
     for word in tf.keys():
-        result.append((word,tf[word]*idf[word]))
-    for i in range(len(result)-1):
-        for j in range(len(result)-i-1):
-            if result[j][1]>result[j+1][1]:
-                (result[j],result[j+1])=(result[j+1],result[j])
-            elif result[j][1]==result[j+1][1]:
-                if result[j][0]>result[j+1][0]:
-                     (result[j],result[j+1])=(result[j+1],result[j])
-    return result
+        if word in idf:
+            result.append((word,tf[word]*idf[word]))
+    return sorted(result,key=lambda x:(x[1],x[0])) # Use key parameter and tuple comparison
 
 
 
